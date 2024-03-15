@@ -51,9 +51,6 @@ func GetPodLogs(namespace string) []string {
 func getPods(namespace string) []v1.Pod {
 
 	clientset, err := kubernetes.NewForConfig(config)
-	//for {
-	// get pods in all the namespaces by omitting namespace
-	// Or specify namespace to get pods in particular namespace
 	pods, err := clientset.CoreV1().Pods(namespace).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		fmt.Println(err.Error())
@@ -63,21 +60,10 @@ func getPods(namespace string) []v1.Pod {
 	podList := []v1.Pod{}
 
 	for _, pod := range pods.Items {
-		/*fmt.Println(getPodLogs(pod, config))
-		fmt.Println("%s", pod.Name)*/
 		podList = append(podList, pod)
 	}
 
 	return podList
-	/*	fmt.Printf("Deployment are: \n")
-		deployments, _ := clientset.AppsV1().Deployments("default").List(context.Background(), metav1.ListOptions{})
-
-		for _, dep := range deployments.Items {
-			fmt.Println("%s", dep.Name)
-		}*/
-
-	//time.Sleep(10 * time.Second)
-	//}
 }
 
 func toPtr(xd int64) *int64 {
