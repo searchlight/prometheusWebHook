@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	getLogs "webhook/client-go"
+	podLogs "webhook/client-go"
 )
 
 func main() {
@@ -32,7 +32,10 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("Here is the logs\n\n\n")
 
-	getLogs.GetLogs()
+	myPodLogs := podLogs.GetPodLogs("default")
+	for i, _ := range myPodLogs {
+		fmt.Println(myPodLogs[i])
+	}
 
 	// Respond with HTTP status 200 OK
 	w.WriteHeader(http.StatusOK)
