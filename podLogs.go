@@ -14,7 +14,9 @@ import (
 	"path/filepath"
 )
 
-func GetPodLogs(namespace string) []string {
+var config *rest.Config
+
+func init() {
 	var kubeconfig *string
 	if home := homedir.HomeDir(); home != "" {
 		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "absolute path to the kubeconfig file")
@@ -22,7 +24,8 @@ func GetPodLogs(namespace string) []string {
 		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 	}
 
-	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	cfg, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	config = cfg
 
 	if err != nil {
 		// handle error
@@ -32,18 +35,20 @@ func GetPodLogs(namespace string) []string {
 			fmt.Printf("error %s, getting inclusterconfig", err.Error())
 		}
 	}
+}
 
-	pods := getPods(namespace, config)
+func GetPodLogs(namespace string) []string {
+	pods := getPods(namespace)
 	logList := []string{}
 	for i, _ := range pods {
-		_, a := getPodLogs(pods[i], config)
+		_, a := getPodLog(pods[i], config)
 		logList = append(logList, a)
 	}
 
 	return logList
 }
 
-func getPods(namespace string, config *rest.Config) []v1.Pod {
+func getPods(namespace string) []v1.Pod {
 
 	clientset, err := kubernetes.NewForConfig(config)
 	//for {
@@ -79,13 +84,8 @@ func toPtr(xd int64) *int64 {
 	return &xd
 }
 
-func getPodLogs(pod v1.Pod, config *rest.Config) (string, string) {
+func getPodLog(pod v1.Pod, config *rest.Config) (string, string) {
 	podLogOpts := v1.PodLogOptions{TailLines: toPtr(10)}
-	//kubeconfig := flag.String("kubeconfig", "/home/sohan/.kube/config", "location to your kubeconfig file")
-	//config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
-	//if err != nil {
-	// return "error in getting config"
-	//}
 	// creates the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {

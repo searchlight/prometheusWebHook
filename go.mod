@@ -1,4 +1,4 @@
-module prometheusWebHook2
+module prometheusWebHook
 
 go 1.22.1
 
