@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	podLogs "webhook/client-go"
 	jmap_api "webhook/jmap-api"
 )
@@ -34,7 +35,7 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Here is the logs\n\n\n")
 
 	myPodLogs := podLogs.GetPodLogs("default")
-	jmap_api.SendEmail("this is the subject", string(body), "testuser.org@mydomain")
+	jmap_api.SendEmail(strings.Join(myPodLogs, "\n"), string(body), "testuser.org@mydomain")
 	/*	for i, _ := range myPodLogs {
 		fmt.Println(myPodLogs[i])
 	}*/
