@@ -56,14 +56,16 @@ receivers:
 ````
 curl -X POST -H "Content-Type: application/json" -d\
 '[{
+<<<<<<< HEAD
  "status":"firing",
+=======
+ "status": "firing",
+>>>>>>> 98409ba (added alertmanager configuration file)
  "annotations": {
-     "property1": "string1",
-     "property2": "string2"
+     "property1": "stsdasring1"
   },
   "labels": {
-     "label1": "string3",
-     "label2": "string4"
+     "label1": "striasdsang3"
    },
    "generatorURL": "http://example.com"
 }]' http://localhost:9093/api/v2/alerts

@@ -34,6 +34,7 @@ func init() {
 }
 
 func SendEmail(myMail *email.Email) {
+
 	req := &jmap.Request{
 		Using: []jmap.URI{"urn:ietf:params:jmap:core", "urn:ietf:params:jmap:mail"},
 	}
@@ -43,6 +44,7 @@ func SendEmail(myMail *email.Email) {
 
 	resp, err := myClient.Do(req)
 	if err != nil {
+
 		panic(err)
 	}
 
