@@ -7,7 +7,7 @@ Download and run alertManager manually. <br>
 https://prometheus.io/download/ <br>
 https://prometheus.io/docs/alerting/latest/alertmanager/
 
-Or you can use <b>docker compose </b>
+Or you can use <b>docker compose</b>
 ```
 alertmanager:
 image: prom/alertmanager:v0.23.0
@@ -27,7 +27,7 @@ volumes:
 To run(manually) and send alert in a webhook server : <br>
 `./alertmanager --config.file=webhook.yml`
 ------------------------------
-<h3>webhook.yml </h3> 
+# webhook.yml
 ````
 global:
   resolve_timeout: 10s
