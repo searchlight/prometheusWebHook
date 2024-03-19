@@ -7,7 +7,7 @@ Download and run alertManager manually. <br>
 https://prometheus.io/download/ <br>
 https://prometheus.io/docs/alerting/latest/alertmanager/
 
-Or you can use <b>docker compose</b>
+Or you can use <i> docker compose </i>
 ```
 alertmanager:
 image: prom/alertmanager:v0.23.0
