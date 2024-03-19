@@ -26,7 +26,7 @@ volumes:
 
 To run(manually) and send alert in a webhook server : <br>
 `./alertmanager --config.file=webhook.yml`
-
+------------------------------
 <h3>webhook.yml </h3> 
 ````
 global:
