@@ -49,7 +49,6 @@ func SendEmail(myMail *email.Email) {
 }
 
 func invokeSetDraftEMail(req *jmap.Request, id jmap.ID, myMail *email.Email) {
-
 	myMap := map[jmap.ID]*email.Email{
 		"draft": &(*myMail),
 	}
@@ -67,8 +66,6 @@ func invokeSendEmail(req *jmap.Request, id jmap.ID) {
 
 	req.Invoke(&emailsubmission.Set{
 		Account: id,
-
-		//IfInState string `json:"ifInState,omitempty"`
 
 		Create: map[jmap.ID]*emailsubmission.EmailSubmission{
 			"sendIt": &myEmailSubmission,
