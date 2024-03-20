@@ -33,6 +33,9 @@ global:
   resolve_timeout: 10s
 route:
   receiver: webhook_receiver
+  group_wait: 0s
+  group_interval: 10s
+  repeat_interval: 4h
 receivers:
     - name: webhook_receiver
       webhook_configs:
