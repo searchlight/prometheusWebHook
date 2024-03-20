@@ -19,7 +19,7 @@ var client *jmap.Client
 var userID jmap.ID
 
 func init() {
-	client := &jmap.Client{
+	client = &jmap.Client{
 		SessionEndpoint: sessionEndpoint,
 	}
 
