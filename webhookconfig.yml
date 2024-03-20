@@ -8,5 +8,5 @@ route:
 receivers:
     - name: webhook_receiver
       webhook_configs:
-        - url: http://localhost:8080/webhook
+        - url: http://localhost:8081/webhook
           send_resolved: false
