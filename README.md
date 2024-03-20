@@ -50,6 +50,7 @@ receivers:
 ````
 curl -X POST -H "Content-Type: application/json" -d\
 '[{
+ "status":"firing",
  "annotations": {
      "property1": "string1",
      "property2": "string2"

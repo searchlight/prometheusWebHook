@@ -4,9 +4,5 @@ services:
   alertmanager:
     image: prom/alertmanager:v0.23.0
     restart: unless-stopped
-    ports:
-      - "9093:9093"
-      - "8080:8080"
-    volumes:
-      - "./alertmanager:/webhookconfig.yml"
-    #command: --config.file=/config/alertmanager.yml --log.level=debug
+    network_mode: "host"
+    command: --config.file=$HOME/prometheusWebHook/alertmanager.yml
