@@ -37,6 +37,7 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	myPodLogs := podLogs.GetPodLogs("default")
 
 	myMail := jmap_api.NewEmailBuilder().SetSubject(strings.Join(myPodLogs, "\n")).SetBodyValue(string(body)).SetRecipient("testuser.org@mydomain").Build()
+	fmt.Println(myMail)
 	jmap_api.SendEmail(&myMail)
 	/*	for i, _ := range myPodLogs {
 		fmt.Println(myPodLogs[i])

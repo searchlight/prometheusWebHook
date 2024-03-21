@@ -10,8 +10,11 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	_ "k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
+	_ "k8s.io/client-go/util/homedir"
 	"path/filepath"
+	_ "path/filepath"
 )
 
 var config *rest.Config
@@ -23,20 +26,23 @@ func init() {
 	} else {
 		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 	}
-
-	cfg, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	fmt.Println(*kubeconfig)
+	_ = kubeconfig
+	//uncomment this line, if you don't use helm
+	//cfg, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	cfg, _ := clientcmd.BuildConfigFromFlags("", "")
 	config = cfg
 
-	if err != nil {
-		// handle error
-		fmt.Printf("erorr %s building config from flags\n", err.Error())
-		config, err = rest.InClusterConfig()
-		if err != nil {
-			fmt.Printf("error %s, getting inclusterconfig", err.Error())
-		}
-	}
+	//uncomment these lines, if you don't use helm
+	//if err != nil {
+	//	// handle error
+	//	fmt.Printf("erorr %s building config from flags\n", err.Error())
+	//	config, err = rest.InClusterConfig()
+	//	if err != nil {
+	//		fmt.Printf("error %s, getting inclusterconfig", err.Error())
+	//	}
+	//}
 }
-
 func GetPodLogs(namespace string) []string {
 	pods := getPods(namespace)
 	logList := []string{}
@@ -53,7 +59,7 @@ func getPods(namespace string) []v1.Pod {
 	clientset, err := kubernetes.NewForConfig(config)
 	pods, err := clientset.CoreV1().Pods(namespace).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Println("Error getting pods ", err.Error())
 	}
 	fmt.Printf("There are %d pods in the cluster\n", len(pods.Items))
 
