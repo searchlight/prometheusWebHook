@@ -46,7 +46,7 @@ route:
 receivers:
     - name: webhook_receiver
       webhook_configs:
-        - url: http://localhost:8080/webhook
+        - url: http://172.24.0.2:30000/webhook
           send_resolved: false
 ````
 
