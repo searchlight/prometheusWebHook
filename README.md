@@ -2,6 +2,12 @@
 Send prometheus alert using webhook. Customize the alert in webhook server and then send a mail.
 
 -----------------------------
+# Run webhook using helm chart
+`git clone git@github.com:searchlight/prometheusWebHook.git`
+`cd prometheusWebHook`
+`helm install webhook webhookHelm/`
+
+------------------------------
 # AlertManager
 Download and run alertManager manually. <br>
 https://prometheus.io/download/ <br>
