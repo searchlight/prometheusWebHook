@@ -3,8 +3,8 @@ Send prometheus alert using webhook. Customize the alert in webhook server and t
 
 -----------------------------
 # Run webhook using helm chart
-`git clone git@github.com:searchlight/prometheusWebHook.git`
-`cd prometheusWebHook`
+`git clone git@github.com:searchlight/prometheusWebHook.git` <br>
+`cd prometheusWebHook` <br>
 `helm install webhook webhookHelm/`
 
 ------------------------------
