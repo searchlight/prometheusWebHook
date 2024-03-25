@@ -1,0 +1,10 @@
+version: '3'
+
+services:
+  alertmanager:
+    image: prom/alertmanager:v0.23.0
+    restart: unless-stopped
+    volumes:
+      - "./webHookConfigLocal.yml:/webHookConfigLocal.yml"
+    network_mode: "host"
+    command: --config.file=/webHookConfigLocal.yml --log.level=debug
