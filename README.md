@@ -84,6 +84,7 @@ parsing the logs.
 ----------------------
 # Issue
   1. Prometheus is vulnerable with multiple replicas
+  2. Jmap does not show any error msg if failed to send mail 
 ----------------------
 
 # Bookstore api
