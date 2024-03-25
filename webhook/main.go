@@ -31,10 +31,13 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Received webhook payload:")
 	fmt.Println(body)
 
-	fmt.Println("Here is the logs\n\n\n")
-
 	//myPodLogs := string(podLogs.GetPodLogs("default")[:])
 	myPodLogs := podLogs.GetPodLogs("default")
+	fmt.Println("Here is the logs\n\n\n")
+	{
+		logsAsString := string(myPodLogs[:])
+		fmt.Println(logsAsString)
+	}
 
 	myMail := jmap_api.NewEmailBuilder().
 		SetSubject("Prometheus Alertmanager alert received").

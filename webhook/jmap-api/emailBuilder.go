@@ -6,13 +6,16 @@ import (
 	_ "git.sr.ht/~rockorager/go-jmap/core"
 	"git.sr.ht/~rockorager/go-jmap/mail"
 	"git.sr.ht/~rockorager/go-jmap/mail/email"
-	_ "git.sr.ht/~rockorager/go-jmap/mail/emailsubmission"
 	"io"
+	"k8s.io/apimachinery/pkg/util/json"
+	"log"
+	"net/http"
+	"strings"
 )
 
 type emailBuilder struct {
 	recipient, subject, bodyValue string
-	uploadResponse                jmap.UploadResponse
+	uploadResponse                *jmap.UploadResponse
 }
 
 func NewEmailBuilder() *emailBuilder {
@@ -35,26 +38,51 @@ func (b *emailBuilder) SetRecipient(recipient string) *emailBuilder {
 }
 
 func (b *emailBuilder) SetAttachment(blob io.Reader) *emailBuilder {
-	/*{
-		buf := new(strings.Builder)
-		io.Copy(buf, blob)
-		fmt.Println(buf.String())
-	}*/
-	resp, err := Client.Upload(UserID, blob)
-	//fmt.Println(resp)
-	fmt.Println(err)
+	resp, err := Upload(myClient, userID, blob)
+
 	if err != nil {
 		fmt.Println("Error setting attachment ")
-		//log.Fatal(err.Error())
-		//fmt.Println("ERROR END ----------------------------------------")
+		log.Fatal(err.Error())
 	}
 
 	if resp == nil {
 		fmt.Println("response is nil")
 	}
-	_ = resp
-	//b.uploadResponse = *resp
+
+	b.uploadResponse = resp
 	return b
+}
+
+// /Slightly modified version of https://github.com/rockorager/go-jmap/blob/main/client.go#L162
+func Upload(c *jmap.Client, accountID jmap.ID, blob io.Reader) (*jmap.UploadResponse, error) {
+	c.Lock()
+
+	url := strings.ReplaceAll(c.Session.UploadURL, "{accountId}", string(accountID))
+	c.Unlock()
+	req, err := http.NewRequest("POST", url, blob)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "text/plain")
+
+	resp, err := c.HttpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	info := &jmap.UploadResponse{}
+	err = json.Unmarshal(data, info)
+	if err != nil {
+		return nil, err
+	}
+
+	return info, nil
 }
 
 func (b *emailBuilder) Build() email.Email {
@@ -93,7 +121,7 @@ func (b *emailBuilder) Build() email.Email {
 		Disposition: "attachment",
 	}
 
-	_ = myAttachment
+	//_ = myAttachment
 
 	myMail := email.Email{
 		From: []*mail.Address{
@@ -114,9 +142,9 @@ func (b *emailBuilder) Build() email.Email {
 
 		TextBody: []*email.BodyPart{&myBodyPart},
 
-		//HasAttachment: true,
+		HasAttachment: true,
 
-		//Attachments: []*email.BodyPart{&myAttachment},
+		Attachments: []*email.BodyPart{&myAttachment},
 	}
 
 	return myMail

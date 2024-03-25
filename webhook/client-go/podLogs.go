@@ -26,7 +26,7 @@ func init() {
 	} else {
 		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 	}
-	fmt.Println(*kubeconfig)
+
 	_ = kubeconfig
 	//uncomment this line, if you don't use helm
 	cfg, _ := clientcmd.BuildConfigFromFlags("", *kubeconfig)
