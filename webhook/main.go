@@ -1,8 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strings"
 	podLogs "webhook/client-go"
@@ -22,27 +23,28 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Read the request body
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "Error reading request body", http.StatusInternalServerError)
-		return
-	}
+	buf := new(strings.Builder)
+	io.Copy(buf, r.Body)
+	body := buf.String()
 
 	// Print the request body
 	fmt.Println("Received webhook payload:")
-	fmt.Println(string(body))
+	fmt.Println(body)
 
 	fmt.Println("Here is the logs\n\n\n")
 
+	//myPodLogs := string(podLogs.GetPodLogs("default")[:])
 	myPodLogs := podLogs.GetPodLogs("default")
 
-	myMail := jmap_api.NewEmailBuilder().SetSubject(strings.Join(myPodLogs, "\n")).SetBodyValue(string(body)).SetRecipient("testuser.org@mydomain").Build()
-	fmt.Println(myMail)
+	myMail := jmap_api.NewEmailBuilder().
+		SetSubject("Prometheus Alertmanager alert received").
+		SetBodyValue(body).
+		SetAttachment(bytes.NewReader(myPodLogs)).
+		SetRecipient("testuser.org@mydomain").
+		Build()
+
+	//fmt.Println(myMail)
 	jmap_api.SendEmail(&myMail)
-	/*	for i, _ := range myPodLogs {
-		fmt.Println(myPodLogs[i])
-	}*/
-	_ = myPodLogs
 	// Respond with HTTP status 200 OK
 	w.WriteHeader(http.StatusOK)
 }

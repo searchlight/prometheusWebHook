@@ -15,21 +15,21 @@ const draftMailboxID = "288b8a70-e82d-11ee-8288-23209b563714"
 const sentMailboxID = "28808df0-e82d-11ee-8288-23209b563714"
 const userEmail = "testuser.org@mydomain"
 
-var client *jmap.Client
-var userID jmap.ID
+var Client *jmap.Client
+var UserID jmap.ID
 
 func init() {
-	client = &jmap.Client{
+	Client = &jmap.Client{
 		SessionEndpoint: sessionEndpoint,
 	}
 
-	client.WithAccessToken(bearerToken)
+	Client.WithAccessToken(bearerToken)
 
-	if err := client.Authenticate(); err != nil {
+	if err := Client.Authenticate(); err != nil {
 		panic(err)
 	}
 
-	userID = client.Session.PrimaryAccounts[mail.URI]
+	UserID = Client.Session.PrimaryAccounts[mail.URI]
 }
 
 func SendEmail(myMail *email.Email) {
@@ -37,10 +37,10 @@ func SendEmail(myMail *email.Email) {
 		Using: []jmap.URI{"urn:ietf:params:jmap:core", "urn:ietf:params:jmap:mail"},
 	}
 
-	invokeSetDraftEMail(req, userID, myMail)
-	invokeSendEmail(req, userID)
+	invokeSetDraftEMail(req, UserID, myMail)
+	invokeSendEmail(req, UserID)
 
-	resp, err := client.Do(req)
+	resp, err := Client.Do(req)
 	if err != nil {
 		panic(err)
 	}

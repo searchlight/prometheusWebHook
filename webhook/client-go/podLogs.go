@@ -29,8 +29,8 @@ func init() {
 	fmt.Println(*kubeconfig)
 	_ = kubeconfig
 	//uncomment this line, if you don't use helm
-	//cfg, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
-	cfg, _ := clientcmd.BuildConfigFromFlags("", "")
+	cfg, _ := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	//cfg, _ := clientcmd.BuildConfigFromFlags("", "")
 	config = cfg
 
 	//uncomment these lines, if you don't use helm
@@ -43,12 +43,22 @@ func init() {
 	//	}
 	//}
 }
-func GetPodLogs(namespace string) []string {
+func GetPodLogs(namespace string) []byte {
 	pods := getPods(namespace)
-	logList := []string{}
+
+	logList := []byte{}
+
 	for i, _ := range pods {
 		_, a := getPodLog(pods[i], config)
-		logList = append(logList, a)
+		logList = append(logList, a...)
+
+		if i < len(pods) {
+			logList = append(logList, []byte("\n")...)
+		}
+	}
+
+	if len(logList) == 0 {
+		logList = append(logList, []byte("Logs empty")...)
 	}
 
 	return logList
@@ -76,17 +86,18 @@ func toPtr(xd int64) *int64 {
 	return &xd
 }
 
-func getPodLog(pod v1.Pod, config *rest.Config) (string, string) {
+// returns ["error message", "pod logs"]
+func getPodLog(pod v1.Pod, config *rest.Config) (string, []byte) {
 	podLogOpts := v1.PodLogOptions{TailLines: toPtr(10)}
 	// creates the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return "error in getting access to K8S", ""
+		return "error in getting access to K8S", []byte{}
 	}
 	req := clientset.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &podLogOpts)
 	podLogs, err := req.Stream(context.Background())
 	if err != nil {
-		return "error in opening stream", ""
+		return "error in opening stream", []byte{}
 
 	}
 	defer podLogs.Close()
@@ -104,10 +115,10 @@ func getPodLog(pod v1.Pod, config *rest.Config) (string, string) {
 		}
 
 		if err != nil {
-			return "err", ""
+			return "err", []byte{}
 		}
 		message = append(message, buf[:numBytes]...)
 	}
 
-	return "", string(message)
+	return "", message
 }
