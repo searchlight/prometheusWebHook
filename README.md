@@ -1,12 +1,19 @@
-# premetheus-alert-webhook
+# prometheus-alert-webhook
 Send prometheus alert using webhook. Customize the alert in webhook server and then send a mail.
-
+The server listens to any alerts sent by the alertmanager, scrapes the pod logs running in the "default" k8s namespace,
+and emails everything to the hardcoded recipient email address.
 -----------------------------
 
 # Run webhook using helm chart
 `git clone git@github.com:searchlight/prometheusWebHook.git` <br>
 `cd prometheusWebHook` <br>
 `helm install webhook webhookHelm/`
+
+# Run webhook manually
+`git clone git@github.com:searchlight/prometheusWebHook.git` <br>
+`cd prometheusWebHook/webhook` <br>
+`go build . ` <br>
+`./webhook`
 
 ------------------------------
 # AlertManager
@@ -68,6 +75,7 @@ parsing the logs.
 
 # TODO
  1. Proper log parsing
+ 2. Aggregate alerts of the same types into a single thread 
 
 ----------------------
 # Issue
