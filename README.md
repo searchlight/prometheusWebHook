@@ -74,7 +74,9 @@ parsing the logs.
 
 # TODO
  1. Proper log parsing
- 2. Aggregate alerts of the same types into a single thread 
+ 2. Aggregate alerts of the same types into a each of their respective email threads (how do we differentiate alerts?)
+ 3. Test out and differentiate alerts from different DBs
+ 4. 
 
 ----------------------
 # Issue
