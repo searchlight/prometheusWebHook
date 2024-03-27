@@ -22,19 +22,7 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Read the request body
-	buf := new(strings.Builder)
-	if _, err := io.Copy(buf, r.Body); err != nil {
-		http.Error(w, "Alert body missing/invalid", http.StatusBadRequest)
-		fmt.Println(err.Error())
-		return
-	}
-
-	body := buf.String()
-
-	// Print the request body
-	fmt.Println("Received webhook payload:")
-	fmt.Println(body)
+	fmt.Println("Alert received")
 
 	//myPodLogs := string(podLogs.GetPodLogs("default")[:])
 	myPodLogs, err := podLogs.GetPodLogs("default")
@@ -44,11 +32,14 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("Here is the logs\n\n\n")
-	{
-		logsAsString := string(myPodLogs[:])
-		fmt.Println(logsAsString)
+	// Read the request body
+	buf := new(strings.Builder)
+	if _, err := io.Copy(buf, r.Body); err != nil {
+		http.Error(w, "Alert body missing/invalid", http.StatusBadRequest)
+		fmt.Println(err.Error())
+		return
 	}
+	body := buf.String()
 
 	myMail, err := jmap_api.NewEmailBuilder().
 		SetSubject("Prometheus Alertmanager alert received").
@@ -70,4 +61,5 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	// Respond with HTTP status 200 OK
 	w.WriteHeader(http.StatusOK)
+	fmt.Println("Alert email sent successfully")
 }

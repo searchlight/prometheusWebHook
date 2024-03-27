@@ -1,7 +1,6 @@
 package jmap_api
 
 import (
-	"fmt"
 	"git.sr.ht/~rockorager/go-jmap"
 	_ "git.sr.ht/~rockorager/go-jmap/core"
 	"git.sr.ht/~rockorager/go-jmap/mail"
@@ -42,12 +41,10 @@ func SendEmail(myMail *email.Email) error {
 	invokeSetDraftEMail(req, userID, myMail)
 	invokeSendEmail(req, userID)
 
-	resp, err := myClient.Do(req)
-	if err != nil {
+	if _, err := myClient.Do(req); err != nil {
 		return err
 	}
 
-	fmt.Println(resp.CreatedIDs)
 	return nil
 }
 

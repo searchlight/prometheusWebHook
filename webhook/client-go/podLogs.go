@@ -19,25 +19,31 @@ import (
 )
 
 var config *rest.Config
+var clientSet *kubernetes.Clientset
 
 const fetchThisManyLinesFromLog = 10
 
 func init() {
-	var kubeconfig *string
+	var kubeConfig *string
 	if home := homedir.HomeDir(); home != "" {
-		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "absolute path to the kubeconfig file")
+		kubeConfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "absolute path to the kubeconfig file")
 	} else {
-		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+		kubeConfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 	}
 
 	//uncomment this line, if you don't use helm
-	cfg, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	cfg, err := clientcmd.BuildConfigFromFlags("", *kubeConfig)
 	if err != nil {
-		log.Fatal("error building config from flags", err)
+		log.Fatal("Error building config from flags", err)
 	}
 	//cfg, _ := clientcmd.BuildConfigFromFlags("", "")
 	config = cfg
 
+	var err2 error
+	clientSet, err2 = kubernetes.NewForConfig(config)
+	if err2 != nil {
+		log.Fatal("Error creating clientset", err)
+	}
 	//uncomment these lines, if you don't use helm
 	//if err != nil {
 	//	// handle error
@@ -78,13 +84,12 @@ func GetPodLogs(namespace string) ([]byte, error) {
 }
 
 func getPods(namespace string) ([]v1.Pod, error) {
-	clientset, err := kubernetes.NewForConfig(config)
-	pods, err := clientset.CoreV1().Pods(namespace).List(context.Background(), metav1.ListOptions{})
+	pods, err := clientSet.CoreV1().Pods(namespace).List(context.Background(), metav1.ListOptions{})
+
 	if err != nil {
 		fmt.Println("Error getting pods ", err.Error())
 		return []v1.Pod{}, err
 	}
-	fmt.Printf("There are %d pods in the cluster\n", len(pods.Items))
 
 	podList := []v1.Pod{}
 
@@ -102,12 +107,8 @@ func toPtr(tailLines int64) *int64 {
 // returns ["pod logs", error]
 func getPodLog(pod v1.Pod, config *rest.Config) ([]byte, error) {
 	podLogOpts := v1.PodLogOptions{TailLines: toPtr(fetchThisManyLinesFromLog)}
-	// creates the clientset
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return []byte{}, err
-	}
-	req := clientset.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &podLogOpts)
+
+	req := clientSet.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &podLogOpts)
 	podLogs, err := req.Stream(context.Background())
 	if err != nil {
 		return []byte{}, err

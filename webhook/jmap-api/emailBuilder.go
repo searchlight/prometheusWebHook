@@ -9,7 +9,6 @@ import (
 	"git.sr.ht/~rockorager/go-jmap/mail/email"
 	"io"
 	"k8s.io/apimachinery/pkg/util/json"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -40,14 +39,16 @@ func (b *emailBuilder) SetRecipient(recipient string) *emailBuilder {
 
 func (b *emailBuilder) SetAttachment(blob io.Reader) *emailBuilder {
 	resp, err := Upload(myClient, userID, blob)
+	b.uploadResponse = nil
 
 	if err != nil {
-		fmt.Println("Error setting attachment ")
-		log.Fatal(err.Error())
+		fmt.Println("Error setting attachment ", err.Error())
+		return b
 	}
 
 	if resp == nil {
 		fmt.Println("response is nil")
+		return b
 	}
 
 	b.uploadResponse = resp
@@ -57,6 +58,17 @@ func (b *emailBuilder) SetAttachment(blob io.Reader) *emailBuilder {
 // /Slightly modified version of https://github.com/rockorager/go-jmap/blob/main/client.go#L162
 func Upload(c *jmap.Client, accountID jmap.ID, blob io.Reader) (*jmap.UploadResponse, error) {
 	c.Lock()
+	if c.SessionEndpoint == "" {
+		c.Unlock()
+		return nil, fmt.Errorf("jmap/client: SessionEndpoint is empty")
+	}
+	if c.Session == nil {
+		c.Unlock()
+		err := c.Authenticate()
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	url := strings.ReplaceAll(c.Session.UploadURL, "{accountId}", string(accountID))
 	c.Unlock()
@@ -64,13 +76,17 @@ func Upload(c *jmap.Client, accountID jmap.ID, blob io.Reader) (*jmap.UploadResp
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", "text/plain")
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	if !(resp.StatusCode == 200 || resp.StatusCode == 201) {
+		return nil, err
+	}
 
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -89,6 +105,10 @@ func Upload(c *jmap.Client, accountID jmap.ID, blob io.Reader) (*jmap.UploadResp
 func (b *emailBuilder) Build() (email.Email, error) {
 	if b.recipient == "" {
 		return email.Email{}, errors.New("No recipient defined")
+	}
+
+	if b.uploadResponse == nil {
+		return email.Email{}, errors.New("Error setting attachment")
 	}
 
 	from := mail.Address{
