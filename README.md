@@ -1,4 +1,5 @@
 # prometheus-alert-webhook
+
 Send prometheus alert using webhook. Customize the alert in webhook server and then send a mail.
 The server listens to any alerts sent by the alertmanager, scrapes the pod logs running in the "default" k8s namespace,
 and emails everything to the hardcoded recipient email address.
