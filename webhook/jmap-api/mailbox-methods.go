@@ -1,6 +1,7 @@
 package jmap_api
 
 import (
+	"errors"
 	"fmt"
 	"git.sr.ht/~rockorager/go-jmap"
 	"git.sr.ht/~rockorager/go-jmap/mail/mailbox"
@@ -23,8 +24,7 @@ func getAllMailboxes() ([]*mailbox.Mailbox, error) {
 	}
 
 	if len(resp.Responses) > 1 {
-		fmt.Println("Multiple responses received (?????????????)")
-		return []*mailbox.Mailbox{}, err
+		return []*mailbox.Mailbox{}, errors.New("Multiple responses received on function getAllMailboxes")
 	}
 
 	///len(resp.Responses) == 1
@@ -62,8 +62,7 @@ func getMailboxIdByTag(tag string) (jmap.ID, error) {
 	}
 
 	if len(resp.Responses) > 1 {
-		fmt.Println("Multiple responses received (?????????????)")
-		return "", err
+		return "", errors.New("Multiple responses received on function getMailboxIdByTag with tag: " + tag)
 	}
 
 	///len(resp.Responses) == 1
@@ -72,7 +71,11 @@ func getMailboxIdByTag(tag string) (jmap.ID, error) {
 	for _, inv := range resp.Responses {
 		switch r := inv.Args.(type) {
 		case *mailbox.QueryResponse:
+			if len(r.IDs) > 1 {
+				return "", errors.New("Multiple mailboxes exists with the same role: " + tag)
+			}
 			requiredID = r.IDs[0]
+			break
 		}
 	}
 
