@@ -7,6 +7,7 @@ import (
 	"git.sr.ht/~rockorager/go-jmap/mail"
 	"git.sr.ht/~rockorager/go-jmap/mail/email"
 	"git.sr.ht/~rockorager/go-jmap/mail/emailsubmission"
+	"log"
 )
 
 const sessionEndpoint = "http://james.appscode.ninja:80/jmap/session"
@@ -26,15 +27,14 @@ func init() {
 	myClient.WithAccessToken(bearerToken)
 
 	if err := myClient.Authenticate(); err != nil {
-		panic(err)
+		log.Fatal("unable to authenticate user with the given credentials", err)
 	}
 
 	userID = myClient.Session.PrimaryAccounts[mail.URI]
 	userEmail = myClient.Session.Accounts[userID].Name
 }
 
-func SendEmail(myMail *email.Email) {
-
+func SendEmail(myMail *email.Email) error {
 	req := &jmap.Request{
 		Using: []jmap.URI{"urn:ietf:params:jmap:core", "urn:ietf:params:jmap:mail"},
 	}
@@ -44,11 +44,11 @@ func SendEmail(myMail *email.Email) {
 
 	resp, err := myClient.Do(req)
 	if err != nil {
-
-		panic(err)
+		return err
 	}
 
 	fmt.Println(resp.CreatedIDs)
+	return nil
 }
 
 func invokeSetDraftEMail(req *jmap.Request, id jmap.ID, myMail *email.Email) {

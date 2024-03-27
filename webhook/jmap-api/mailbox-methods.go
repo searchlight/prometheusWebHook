@@ -14,5 +14,6 @@ func getAllMailboxes() []*mailbox.Mailbox {
 		Account: userID,
 	})
 
+	//TODO: return a real list
 	return []*mailbox.Mailbox{}
 }

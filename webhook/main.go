@@ -24,7 +24,12 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Read the request body
 	buf := new(strings.Builder)
-	io.Copy(buf, r.Body)
+	if _, err := io.Copy(buf, r.Body); err != nil {
+		http.Error(w, "Alert body missing/invalid", http.StatusBadRequest)
+		fmt.Println(err.Error())
+		return
+	}
+
 	body := buf.String()
 
 	// Print the request body
@@ -32,22 +37,37 @@ func webhookHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(body)
 
 	//myPodLogs := string(podLogs.GetPodLogs("default")[:])
-	myPodLogs := podLogs.GetPodLogs("default")
+	myPodLogs, err := podLogs.GetPodLogs("default")
+	if err != nil {
+		http.Error(w, "Error fetching pod logs", http.StatusInternalServerError)
+		fmt.Println(err)
+		return
+	}
+
 	fmt.Println("Here is the logs\n\n\n")
 	{
 		logsAsString := string(myPodLogs[:])
 		fmt.Println(logsAsString)
 	}
 
-	myMail := jmap_api.NewEmailBuilder().
+	myMail, err := jmap_api.NewEmailBuilder().
 		SetSubject("Prometheus Alertmanager alert received").
 		SetBodyValue(body).
 		SetAttachment(bytes.NewReader(myPodLogs)).
 		SetRecipient("testuser.org@mydomain").
 		Build()
 
+	if err != nil {
+		http.Error(w, "Unable to create email", http.StatusInternalServerError)
+		fmt.Println(err.Error())
+		return
+	}
 	//fmt.Println(myMail)
-	jmap_api.SendEmail(&myMail)
+	if err := jmap_api.SendEmail(&myMail); err != nil {
+		http.Error(w, "Failed to send email", http.StatusInternalServerError)
+		fmt.Println("Failed to send email", err)
+		return
+	}
 	// Respond with HTTP status 200 OK
 	w.WriteHeader(http.StatusOK)
 }

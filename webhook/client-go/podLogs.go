@@ -13,11 +13,14 @@ import (
 	_ "k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
 	_ "k8s.io/client-go/util/homedir"
+	"log"
 	"path/filepath"
 	_ "path/filepath"
 )
 
 var config *rest.Config
+
+const fetchThisManyLinesFromLog = 10
 
 func init() {
 	var kubeconfig *string
@@ -27,9 +30,11 @@ func init() {
 		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 	}
 
-	_ = kubeconfig
 	//uncomment this line, if you don't use helm
-	cfg, _ := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	cfg, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
+	if err != nil {
+		log.Fatal("error building config from flags", err)
+	}
 	//cfg, _ := clientcmd.BuildConfigFromFlags("", "")
 	config = cfg
 
@@ -43,13 +48,21 @@ func init() {
 	//	}
 	//}
 }
-func GetPodLogs(namespace string) []byte {
-	pods := getPods(namespace)
+func GetPodLogs(namespace string) ([]byte, error) {
+	pods, err := getPods(namespace)
+	if err != nil {
+		return []byte{}, err
+	}
 
 	logList := []byte{}
 
 	for i, _ := range pods {
-		_, a := getPodLog(pods[i], config)
+		a, err := getPodLog(pods[i], config)
+		if err != nil {
+			fmt.Println("Failed to get logs from pod", err)
+			continue
+		}
+
 		logList = append(logList, a...)
 
 		if i < len(pods) {
@@ -61,15 +74,15 @@ func GetPodLogs(namespace string) []byte {
 		logList = append(logList, []byte("Logs empty")...)
 	}
 
-	return logList
+	return logList, nil
 }
 
-func getPods(namespace string) []v1.Pod {
-
+func getPods(namespace string) ([]v1.Pod, error) {
 	clientset, err := kubernetes.NewForConfig(config)
 	pods, err := clientset.CoreV1().Pods(namespace).List(context.Background(), metav1.ListOptions{})
 	if err != nil {
 		fmt.Println("Error getting pods ", err.Error())
+		return []v1.Pod{}, err
 	}
 	fmt.Printf("There are %d pods in the cluster\n", len(pods.Items))
 
@@ -79,25 +92,25 @@ func getPods(namespace string) []v1.Pod {
 		podList = append(podList, pod)
 	}
 
-	return podList
+	return podList, nil
 }
 
-func toPtr(xd int64) *int64 {
-	return &xd
+func toPtr(tailLines int64) *int64 {
+	return &tailLines
 }
 
-// returns ["error message", "pod logs"]
-func getPodLog(pod v1.Pod, config *rest.Config) (string, []byte) {
-	podLogOpts := v1.PodLogOptions{TailLines: toPtr(10)}
+// returns ["pod logs", error]
+func getPodLog(pod v1.Pod, config *rest.Config) ([]byte, error) {
+	podLogOpts := v1.PodLogOptions{TailLines: toPtr(fetchThisManyLinesFromLog)}
 	// creates the clientset
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return "error in getting access to K8S", []byte{}
+		return []byte{}, err
 	}
 	req := clientset.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &podLogOpts)
 	podLogs, err := req.Stream(context.Background())
 	if err != nil {
-		return "error in opening stream", []byte{}
+		return []byte{}, err
 
 	}
 	defer podLogs.Close()
@@ -115,10 +128,10 @@ func getPodLog(pod v1.Pod, config *rest.Config) (string, []byte) {
 		}
 
 		if err != nil {
-			return "err", []byte{}
+			return []byte{}, err
 		}
 		message = append(message, buf[:numBytes]...)
 	}
 
-	return "", message
+	return message, nil
 }

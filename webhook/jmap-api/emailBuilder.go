@@ -1,6 +1,7 @@
 package jmap_api
 
 import (
+	"errors"
 	"fmt"
 	"git.sr.ht/~rockorager/go-jmap"
 	_ "git.sr.ht/~rockorager/go-jmap/core"
@@ -85,9 +86,9 @@ func Upload(c *jmap.Client, accountID jmap.ID, blob io.Reader) (*jmap.UploadResp
 	return info, nil
 }
 
-func (b *emailBuilder) Build() email.Email {
+func (b *emailBuilder) Build() (email.Email, error) {
 	if b.recipient == "" {
-		panic("no recipient defined")
+		return email.Email{}, errors.New("No recipient defined")
 	}
 
 	from := mail.Address{
@@ -147,5 +148,5 @@ func (b *emailBuilder) Build() email.Email {
 		Attachments: []*email.BodyPart{&myAttachment},
 	}
 
-	return myMail
+	return myMail, nil
 }
